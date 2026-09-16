@@ -9,6 +9,8 @@ import sys
 import urllib.request
 from urllib.parse import urlencode
 
+from .prime import get_prime_guide
+
 API_URL = "https://hn.algolia.com/api/v1/search"
 
 
@@ -60,7 +62,7 @@ def format_hit(hit: dict) -> str:
     return f"{title}\n  {url}\n  {points} points | {comments} comments | by {author} | {created}\n"
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="hnalg",
         description="Search Hacker News via the Algolia API",
@@ -87,7 +89,11 @@ def main() -> int:
     parser.add_argument(
         "--json", action="store_true", help="output raw JSON"
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+
+    if args.query == "prime":
+        print(get_prime_guide(), end="")
+        return 0
 
     if not args.query:
         parser.error("a query is required")
