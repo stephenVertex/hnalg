@@ -66,6 +66,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="hnalg",
         description="Search Hacker News via the Algolia API",
+        epilog="Run 'hnalg prime' for the offline usage guide.",
     )
     parser.add_argument("query", nargs="?", default="", help="search query")
     parser.add_argument(

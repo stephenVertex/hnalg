@@ -8,6 +8,25 @@ from hnalg.prime import get_prime_guide
 
 
 class CliDispatchTests(unittest.TestCase):
+    def test_help_discovers_prime_and_preserves_search_options(self) -> None:
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+
+        with (
+            patch("hnalg.search") as search,
+            redirect_stdout(stdout),
+            redirect_stderr(stderr),
+            self.assertRaises(SystemExit) as stopped,
+        ):
+            main(["--help"])
+
+        self.assertEqual(stopped.exception.code, 0)
+        self.assertIn("hnalg prime", stdout.getvalue())
+        self.assertIn("--limit", stdout.getvalue())
+        self.assertIn("query", stdout.getvalue())
+        self.assertEqual(stderr.getvalue(), "")
+        search.assert_not_called()
+
     def test_prime_prints_guide_and_exits_successfully_without_searching(self) -> None:
         stdout = io.StringIO()
         stderr = io.StringIO()
