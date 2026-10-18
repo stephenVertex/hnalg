@@ -17,3 +17,10 @@ hnalg "linux kernel" --story
 hnalg "hiring" --author patio11
 hnalg "show hn" --show-hn
 ```
+
+## Network troubleshooting
+
+Searches require HTTPS access to `hn.algolia.com`. Temporary DNS failures are
+retried twice with a short backoff. If a DNS error persists, check your network,
+VPN, or DNS resolver; `nslookup hn.algolia.com` can help confirm whether the
+hostname resolves. Other network failures are reported without DNS retries.

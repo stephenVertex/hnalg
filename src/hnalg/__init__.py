@@ -5,7 +5,10 @@ import argparse
 import html
 import json
 import re
+import socket
 import sys
+import time
+import urllib.error
 import urllib.request
 from urllib.parse import urlencode
 
@@ -21,8 +24,18 @@ def search(query: str, tags: str | None = None, hits_per_page: int = 20) -> dict
         params["tags"] = tags
     url = f"{API_URL}?{urlencode(params)}"
     req = urllib.request.Request(url, headers={"User-Agent": "hnalg/0.1.0"})
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.URLError as error:
+            if (
+                not isinstance(error.reason, socket.gaierror)
+                or error.reason.errno != socket.EAI_AGAIN
+                or attempt == 2
+            ):
+                raise
+            time.sleep(0.5 * (2 ** attempt))
 
 
 def _strip_html(text: str) -> str:
@@ -115,6 +128,16 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         data = search(args.query, tags=tags_str, hits_per_page=args.limit)
+    except urllib.error.URLError as error:
+        if isinstance(error.reason, socket.gaierror):
+            print(
+                "error: DNS lookup failed for hn.algolia.com; "
+                "check your network, VPN, or DNS resolver and try again.",
+                file=sys.stderr,
+            )
+        else:
+            print(f"error: {error}", file=sys.stderr)
+        return 1
     except Exception as e:
         print(f"error: {e}", file=sys.stderr)
         return 1
